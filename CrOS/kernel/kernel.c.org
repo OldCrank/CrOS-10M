@@ -1,0 +1,92 @@
+///#include <unistd.h>
+#include "../cpu/isr.h"
+#include "../drivers/screen.h"
+#include "kernel.h"
+#include "../libc/string.h"
+#include "../libc/mem.h"
+#include "../libc/io.h"
+#include "../libc/cr_time.h"
+#include <stdint.h>
+//#include <time.h>
+// #include <dos.h>
+// #include <io.h>
+
+struct cr_time curTime;
+
+void kernel_main() {
+    isr_install();
+    irq_install();
+
+    asm("int $2");
+    asm("int $3");
+
+    clear_screen();
+
+    // print status bar. This shouldn'ta be here, but testing.
+    //// struct cr_time curTime;
+    curTime.Hours = 0;
+    curTime.Mins = 6;
+    curTime.secs = 0;
+
+    int Hour = 0;
+    char tim[10];
+    char cHrs[4];
+    char cmin[4];
+    char csecs[4];
+    get_time(&curTime);
+    kprint_colour_at("CrOS v0.02.          Time is:                                                   \n", WHITE_ON_PURPLE, 0, 0);  // ### time will be filled in by timer.c get_time()
+    /*
+    itoa( curTime.Hours, cHrs);
+    itoa( curTime.Mins, cmin);
+    itoa( curTime.secs, csecs);
+
+    ///printf("Mins: %s\n", Hour);
+    kprint_at( cHrs , 30 , 0);
+    kprint_at( cmin , 36, 0);
+    kprint_at( csecs , 40, 0);
+    //kprint_at( Hour, 36, 0);
+    kprint( "\n");
+    */
+
+    kprint("Type something, it will go through the kernel\n"
+        "Type EXIT to halt the CPU or PAGE to request a kmalloc()\n> ");
+}
+
+void user_input(char *input) {
+    if (strcmp(input, "") == 0) {
+        kprint("Are you doing finger exercises?");
+    }
+    else if (strcmp(input, "EXIT") == 0) {
+        kprint("Stopping the CPU. Bye!\n");
+        asm volatile("hlt");
+    } 
+    else if ((strcmp(input, "DIR") == 0) | (strcmp(input, "LS") == 0)) {
+        kprint("File system not mounted.");
+    }
+    else if (strcmp(input, "CLEAR") == 0) {
+        clear_screen();
+    }
+    else if (strcmp(input, "PAGE") == 0) {
+        /* Lesson 22: Code to test kmalloc, the rest is unchanged */
+        uint32_t phys_addr;
+        uint32_t page = kmalloc(1000, 1, &phys_addr);
+        char page_str[16] = "";
+        hex_to_ascii(page, page_str);
+        char phys_str[16] = "";
+        hex_to_ascii(phys_addr, phys_str);
+        kprint("Page: ");
+        kprint(page_str);
+        kprint(", physical address: ");
+        kprint(phys_str);
+        kprint("\n");
+    }
+    else {
+        kprint("I don't understand ");
+        kprint(input);
+        kprint(". Why do you feel like that!");
+    }
+    
+    ///kprint("You said: ");
+    ///kprint(input);
+    kprint("\nWhat now-> ");
+}

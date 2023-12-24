@@ -1,0 +1,49 @@
+## Craig 30-6-2023.
+
+Compile cmds:
+i386-elf-as MBR-03.s -o MBR-03.o
+
+i386-elf-ld -Ttext 200000 --oformat binary -o MBR-03.bin MBR-03.o
+
+Read MBR.
+Read MBR to file: 
+dd if=/dev/sdc of=./mbr_org.bin bs=512 count=1 && sync
+Write file to drive:  
+dd if=./MBR-02.bin of=/dev/sdc bs=512 count=1 && sync
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+## Craig 27-7-2023.
+
+Made disassembly of Rufus VBR. Going to try to replicate with my own code.
+
+Created myVBR-01.s, by coping MBR-04.s
+
+Disassemble bin:  objdump -D -b binary -mi386 -Maddr16,data16  dos_vbr.bin >> dos_vbr.dmp.txt
+
+added my comments into dos_vbr.dmp-1.txt
+
+dd if=./myVBR-01.bin of=/dev/sdc1 bs=512 count=2 && sync
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+## Craig 24-8-2023.
+
+Created myVBR-01-6, from myVBR-01-5.
+Trying to add in disk read function etc, as per bootsect.asm
+copied old disk.asm to mydisk.c, I need to make the conversion from Intel to AT&T syntax.
+
+26-8-2023. Made changes to myVBR-01-6, and DDed to USB. It still booted, and tried to read from usb, but gave Disk Read Error.
+More changes, got to sector number error.
+
+28-8-2023. mydisk.s seems to be working fine now.
+
+31-8-2023.  added other bits, i.e. mygdt.s, myswitch_pm.s, etc. Got to 32BIT msg, but when added call KERNEL_OFFSET, then broke and pc rebooted.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+## Craig 17-9-2023.
+Creating new VBR for Bochs FreeDOS .img
+Copied in myVBR-01-6.s from OS-Dev/VBR/myVBR-01, into OS-Dev/Bochs/VBR (this folder). 
+Will probably need to copy over others.
